@@ -1,0 +1,8 @@
+{
+  "_comment": "Not wired up yet — reserved for when an AI provider is connected. Add the model settings you want each feature to use here.",
+  "default": {
+    "provider": "openai",
+    "model": "gpt-4.1",
+    "temperature": 0.7
+  }
+}

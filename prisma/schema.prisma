@@ -1,0 +1,93 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// One rules block per feature tab (scripts/thumbnails/ideas/...), always applied to that tab's prompts.
+model Rule {
+  id        String   @id @default(cuid())
+  userId    String
+  feature   String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, feature])
+  @@index([userId])
+}
+
+model Script {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String   @db.VarChar(255)
+  content   String   @db.Text
+  status    String   @default("draft")
+  notes     String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  videos    Video[]
+
+  @@index([userId])
+}
+
+model Thumbnail {
+  id         String   @id @default(cuid())
+  userId     String
+  title      String   @db.VarChar(255)
+  promptText String   @db.Text
+  imageUrl   String?  @db.VarChar(2048)
+  status     String   @default("draft")
+  notes      String?  @db.Text
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  videos     Video[]
+
+  @@index([userId])
+}
+
+model Idea {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String   @db.VarChar(255)
+  description String?  @db.Text
+  status      String   @default("new")
+  notes       String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  videos      Video[]
+
+  @@index([userId])
+}
+
+// A video the user actually made, assembled from the pieces they chose to use.
+model Video {
+  id          String     @id @default(cuid())
+  userId      String
+  title       String     @db.VarChar(255)
+  description String?    @db.Text
+  videoUrl    String?    @db.VarChar(2048)
+  status      String     @default("planned")
+  tags        Json?
+  publishedAt DateTime?
+  notes       String?    @db.Text
+  scriptId    String?
+  thumbnailId String?
+  ideaId      String?
+  script      Script?    @relation(fields: [scriptId], references: [id], onDelete: SetNull)
+  thumbnail   Thumbnail? @relation(fields: [thumbnailId], references: [id], onDelete: SetNull)
+  idea        Idea?      @relation(fields: [ideaId], references: [id], onDelete: SetNull)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([userId])
+  @@index([scriptId])
+  @@index([thumbnailId])
+  @@index([ideaId])
+}
