@@ -1,3 +1,5 @@
+"use client";
+
 import { NavLink } from "@/components/layout/nav-link";
 import { PRIMARY_NAV_ITEMS, SECONDARY_NAV_ITEMS } from "@/config/features";
 
