@@ -22,8 +22,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { GenerationDetails } from "@/components/workspace/generation-details";
 import { thumbnailStatusValues, type ThumbnailStatus } from "@/schemas/thumbnail";
-import { createThumbnail, updateThumbnail } from "@/server/actions/thumbnails";
+import { updateThumbnail } from "@/server/actions/thumbnails";
 
 type ThumbnailRecord = {
   id: string;
@@ -32,6 +33,8 @@ type ThumbnailRecord = {
   imageUrl: string | null;
   status: string;
   notes: string | null;
+  generationRules: string | null;
+  generationPrompt: string | null;
 };
 
 const STATUS_LABELS: Record<ThumbnailStatus, string> = {
@@ -47,16 +50,13 @@ export function ThumbnailFormDialog({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  thumbnail?: ThumbnailRecord;
+  thumbnail: ThumbnailRecord;
 }) {
-  const isEditing = Boolean(thumbnail);
-  const [title, setTitle] = useState(thumbnail?.title ?? "");
-  const [status, setStatus] = useState<ThumbnailStatus>(
-    (thumbnail?.status as ThumbnailStatus) ?? "draft",
-  );
-  const [promptText, setPromptText] = useState(thumbnail?.promptText ?? "");
-  const [imageUrl, setImageUrl] = useState(thumbnail?.imageUrl ?? "");
-  const [notes, setNotes] = useState(thumbnail?.notes ?? "");
+  const [title, setTitle] = useState(thumbnail.title);
+  const [status, setStatus] = useState<ThumbnailStatus>(thumbnail.status as ThumbnailStatus);
+  const [promptText, setPromptText] = useState(thumbnail.promptText);
+  const [imageUrl, setImageUrl] = useState(thumbnail.imageUrl ?? "");
+  const [notes, setNotes] = useState(thumbnail.notes ?? "");
   const [isPending, startTransition] = useTransition();
 
   function resetAndClose() {
@@ -66,38 +66,52 @@ export function ThumbnailFormDialog({
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     startTransition(async () => {
-      const input = { title, status, promptText, imageUrl, notes };
-      const result = isEditing
-        ? await updateThumbnail({ id: thumbnail!.id, ...input })
-        : await createThumbnail(input);
+      const result = await updateThumbnail({
+        id: thumbnail.id,
+        title,
+        status,
+        promptText,
+        imageUrl,
+        notes,
+      });
 
       if (!result.ok) {
         toast.error(result.error);
         return;
       }
 
-      toast.success(isEditing ? "Thumbnail updated" : "Thumbnail created");
-      if (!isEditing) {
-        setTitle("");
-        setPromptText("");
-        setImageUrl("");
-        setNotes("");
-        setStatus("draft");
-      }
+      toast.success("Thumbnail updated");
       resetAndClose();
     });
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[85vh] max-w-xl overflow-y-auto">
+      <DialogContent className="max-h-[85vh] max-w-4xl overflow-y-auto sm:max-w-4xl">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>{isEditing ? "Edit Thumbnail" : "New Thumbnail"}</DialogTitle>
+            <DialogTitle>Edit Thumbnail</DialogTitle>
             <DialogDescription>
               Draft a thumbnail concept and its image-generation prompt.
             </DialogDescription>
           </DialogHeader>
+          <GenerationDetails
+            prompt={thumbnail.generationPrompt}
+            rules={thumbnail.generationRules}
+          />
+          {imageUrl && (
+            // Opens the full-size image in a new tab rather than an in-app lightbox — simpler and
+            // avoids adding focus-trap/z-index complexity for what's otherwise a read-only preview.
+            <a
+              href={imageUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="border-border mt-3 block w-64 max-w-full overflow-hidden rounded-lg border"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary R2/user-supplied URL, not an app asset */}
+              <img src={imageUrl} alt="" className="aspect-video w-full object-cover" />
+            </a>
+          )}
           <FieldGroup className="py-4">
             <Field>
               <FieldLabel htmlFor="thumbnail-title">Title</FieldLabel>
@@ -164,7 +178,7 @@ export function ThumbnailFormDialog({
               Cancel
             </Button>
             <Button type="submit" disabled={isPending || !title.trim()}>
-              {isEditing ? "Save" : "Create"}
+              Save
             </Button>
           </DialogFooter>
         </form>

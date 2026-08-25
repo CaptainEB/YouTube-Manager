@@ -9,9 +9,8 @@ type GenerationFeature = {
   href: `/${GenerationFeatureKey}`;
   icon: LucideIcon;
   description: string;
+  // Singular noun used in generation success toasts (e.g. "Script generated").
   entityName: string;
-  entityNamePlural: string;
-  createLabel: string;
 };
 
 // The tabs that share the Rules + prompt + preview workspace pattern. Adding a new one here
@@ -24,8 +23,6 @@ export const GENERATION_FEATURES: readonly GenerationFeature[] = [
     icon: FileText,
     description: "Manage and track your video scripts.",
     entityName: "Script",
-    entityNamePlural: "Scripts",
-    createLabel: "New Script",
   },
   {
     key: "thumbnails",
@@ -34,8 +31,6 @@ export const GENERATION_FEATURES: readonly GenerationFeature[] = [
     icon: ImageIcon,
     description: "Draft thumbnail concepts and image-generation prompts.",
     entityName: "Thumbnail",
-    entityNamePlural: "Thumbnails",
-    createLabel: "New Thumbnail",
   },
   {
     key: "ideas",
@@ -44,8 +39,6 @@ export const GENERATION_FEATURES: readonly GenerationFeature[] = [
     icon: Lightbulb,
     description: "Brainstorm new video ideas from your channel history and trends.",
     entityName: "Idea",
-    entityNamePlural: "Ideas",
-    createLabel: "New Idea",
   },
 ];
 

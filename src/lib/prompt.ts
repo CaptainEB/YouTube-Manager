@@ -1,5 +1,7 @@
 export type PromptSection = { label: string; content: string };
 
+export type ChatMessage = { role: "system" | "user"; content: string };
+
 type AssemblePromptInput = {
   systemPrompt: string;
   rules: string;
@@ -32,4 +34,21 @@ export function assembleFinalPrompt({
     .join("\n\n");
 
   return { sections, fullText };
+}
+
+// Splits assembled sections into a system/user message pair for the Chat Completions API — the
+// first section is always "System Prompt" (see assembleFinalPrompt above).
+export function toChatMessages(sections: PromptSection[]): ChatMessage[] {
+  const [systemSection, ...rest] = sections;
+  if (!systemSection) {
+    throw new Error("Expected at least a system prompt section");
+  }
+  const userContent = rest
+    .map((section) => `### ${section.label}\n${section.content}`)
+    .join("\n\n");
+
+  return [
+    { role: "system", content: systemSection.content },
+    { role: "user", content: userContent },
+  ];
 }

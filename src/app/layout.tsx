@@ -4,15 +4,24 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { ClerkProvider } from "@clerk/nextjs";
 import { shadcn } from "@clerk/ui/themes";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "YouTube Manager",
+  title: { default: "YouTube Manager", template: "%s | YouTube Manager" },
   description: "Content creation workspace for scripting, thumbnails, ideas, and video tracking.",
+  // Single-owner tool, not meant for public discovery — reinforced by robots.ts too.
+  robots: { index: false, follow: false },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f9f9f9" },
+    { media: "(prefers-color-scheme: dark)", color: "#161616" },
+  ],
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

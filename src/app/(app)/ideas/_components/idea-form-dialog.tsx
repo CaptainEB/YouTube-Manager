@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { GenerationDetails } from "@/components/workspace/generation-details";
 import { ideaStatusValues, type IdeaStatus } from "@/schemas/idea";
 import { createIdea, updateIdea } from "@/server/actions/ideas";
 
@@ -31,6 +32,8 @@ type IdeaRecord = {
   description: string | null;
   status: string;
   notes: string | null;
+  generationRules: string | null;
+  generationPrompt: string | null;
 };
 
 const STATUS_LABELS: Record<IdeaStatus, string> = {
@@ -86,12 +89,16 @@ export function IdeaFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[85vh] max-w-xl overflow-y-auto">
+      <DialogContent className="max-h-[85vh] max-w-4xl overflow-y-auto sm:max-w-4xl">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>{isEditing ? "Edit Idea" : "New Idea"}</DialogTitle>
             <DialogDescription>Capture a video idea to develop later.</DialogDescription>
           </DialogHeader>
+          <GenerationDetails
+            prompt={idea?.generationPrompt ?? null}
+            rules={idea?.generationRules ?? null}
+          />
           <FieldGroup className="py-4">
             <Field>
               <FieldLabel htmlFor="idea-title">Title</FieldLabel>

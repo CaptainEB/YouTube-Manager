@@ -35,10 +35,11 @@ id), plus Vercel deployment steps.
 ## How the app is organized
 
 - **Scripts / Thumbnails / Ideas** — each is a "generation workspace": a collapsible **Rules**
-  panel (your standing instructions for that tab, autosaved), a prompt box, a **Generate** button
-  that assembles `system prompt + rules + (channel context) + your prompt` into a preview dialog
-  you can copy, and a flat list of saved items below with create/edit/delete. No AI model is wired
-  up yet — see [SETUP.md](./SETUP.md#next-steps--whats-intentionally-not-done-yet).
+  panel (your standing instructions for that tab, autosaved), a prompt box, and a **Generate**
+  button that sends `system prompt + rules + (channel context) + your prompt` to an OpenRouter
+  model and adds the result straight to the list below (Scripts/Thumbnails have no separate manual
+  "New" button — generation is how entries are created; existing ones can still be edited). See
+  [SETUP.md](./SETUP.md) for the `OPENROUTER_API_KEY` you'll need.
 - **Dashboard** — a grid of videos you've actually made. Each one links back to the specific
   Script, Thumbnail, and Idea you used, plus the live video link, description, tags, and notes.
 - **Settings** — theme, account management, and a read-only look at the current system prompts.
@@ -46,7 +47,8 @@ id), plus Vercel deployment steps.
 ### Developer-tunable config (no code changes needed)
 
 - `config/prompts.json` — the system prompt for each tab. Edit this and restart the app.
-- `config/models.json` — placeholder for AI provider/model settings once one is connected.
+- `config/models.json` — the OpenRouter model slug + temperature + max output tokens used for
+  generation, with an optional per-feature override.
 
 ### Adding a new generation tab (beyond Scripts/Thumbnails/Ideas)
 

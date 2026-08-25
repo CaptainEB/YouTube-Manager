@@ -1,8 +1,11 @@
 {
-  "_comment": "Not wired up yet — reserved for when an AI provider is connected. Add the model settings you want each feature to use here.",
+  "_comment": "Models used via OpenRouter (https://openrouter.ai/models). \"model\" is an OpenRouter model slug — edit it to try a different model, no code changes needed. \"default\" applies to every text-generation tab; add a \"scripts\"/\"thumbnails\"/\"ideas\" key with any of the same fields to override it for just that tab. \"thumbnailImage\" is the separate image-generation model that renders the actual thumbnail from the prompt the \"thumbnails\" model writes — must be an image-capable model (e.g. a Nano Banana or GPT Image slug).",
   "default": {
-    "provider": "openai",
-    "model": "gpt-4.1",
-    "temperature": 0.7
+    "model": "google/gemini-3.7-flash",
+    "temperature": 0.7,
+    "maxOutputTokens": 4096
+  },
+  "thumbnailImage": {
+    "model": "google/gemini-3.1-flash-image"
   }
 }

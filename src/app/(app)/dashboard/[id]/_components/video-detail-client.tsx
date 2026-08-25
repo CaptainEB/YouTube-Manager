@@ -97,6 +97,7 @@ export function VideoDetailClient({
         return;
       }
       toast.success("Video saved");
+      router.push("/dashboard");
     });
   }
 

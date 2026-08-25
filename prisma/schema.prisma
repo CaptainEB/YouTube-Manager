@@ -24,44 +24,53 @@ model Rule {
 }
 
 model Script {
-  id        String   @id @default(cuid())
-  userId    String
-  title     String   @db.VarChar(255)
-  content   String   @db.Text
-  status    String   @default("draft")
-  notes     String?  @db.Text
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  videos    Video[]
+  id               String   @id @default(cuid())
+  userId           String
+  title            String   @db.VarChar(255)
+  content          String   @db.Text
+  status           String   @default("draft")
+  notes            String?  @db.Text
+  // Snapshot of the Rules/prompt used to generate this entry (null for manually-created/pre-AI rows).
+  generationRules  String?  @db.Text
+  generationPrompt String?  @db.Text
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  videos           Video[]
 
   @@index([userId])
 }
 
 model Thumbnail {
-  id         String   @id @default(cuid())
-  userId     String
-  title      String   @db.VarChar(255)
-  promptText String   @db.Text
-  imageUrl   String?  @db.VarChar(2048)
-  status     String   @default("draft")
-  notes      String?  @db.Text
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  videos     Video[]
+  id               String   @id @default(cuid())
+  userId           String
+  title            String   @db.VarChar(255)
+  promptText       String   @db.Text
+  imageUrl         String?  @db.VarChar(2048)
+  status           String   @default("draft")
+  notes            String?  @db.Text
+  // Snapshot of the Rules/prompt used to generate this entry (null for manually-created/pre-AI rows).
+  generationRules  String?  @db.Text
+  generationPrompt String?  @db.Text
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  videos           Video[]
 
   @@index([userId])
 }
 
 model Idea {
-  id          String   @id @default(cuid())
-  userId      String
-  title       String   @db.VarChar(255)
-  description String?  @db.Text
-  status      String   @default("new")
-  notes       String?  @db.Text
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  videos      Video[]
+  id               String   @id @default(cuid())
+  userId           String
+  title            String   @db.VarChar(255)
+  description      String?  @db.Text
+  status           String   @default("new")
+  notes            String?  @db.Text
+  // Snapshot of the Rules/prompt used to generate this entry (null for manually-created/pre-AI rows).
+  generationRules  String?  @db.Text
+  generationPrompt String?  @db.Text
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  videos           Video[]
 
   @@index([userId])
 }

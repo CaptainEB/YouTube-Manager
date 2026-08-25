@@ -18,3 +18,10 @@ export const optionalHttpsUrl = z
   .optional()
   .or(z.literal(""))
   .transform((value) => (value ? value : null));
+
+// Shared input for every "Generate" action (scripts/thumbnails/ideas) — the system prompt and
+// (for Ideas) channel context are always derived server-side, never trusted from the client.
+export const generateInputSchema = z.object({
+  rules: z.string().max(20000).default(""),
+  userPrompt: z.string().trim().min(1, "Prompt is required").max(10000),
+});

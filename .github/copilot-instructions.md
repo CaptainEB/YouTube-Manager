@@ -108,9 +108,11 @@ components.
 - `src/lib/` — pure server-safe helpers (`prisma.ts`, `auth.ts`, `config.ts`, `prompt.ts`,
   `channel-context.ts`, `action-result.ts`).
 - `config/` (repo root, **not** under `src/`) — the developer-tuning surface the user explicitly
-  asked for: `prompts.json` (per-tab system prompts — the main thing to edit), `models.json`
-  (placeholder until an AI provider is wired up). Loaded and Zod-validated in `src/lib/config.ts`
-  (fails fast at startup on a malformed/missing key) via the `@config/*` path alias.
+  asked for: `prompts.json` (per-tab system prompts) and `models.json` (the OpenRouter model slug +
+  temperature + max output tokens used for generation, with an optional per-feature override —
+  edit `model` there to try a different OpenRouter model, no code changes needed). Loaded and
+  Zod-validated in `src/lib/config.ts` (fails fast at startup on a malformed/missing key) via the
+  `@config/*` path alias.
 - `src/config/features.ts` (note: different from repo-root `config/`) — the code-level feature
   registry driving the sidebar nav and each generation tab's label/route/entity nouns. Adding a
   fourth generation tab (beyond scripts/thumbnails/ideas) means: add an entry here, add a matching
@@ -122,16 +124,23 @@ components.
 
 Each of these tabs is: a collapsible **Rules** panel (per-user, per-feature, debounced autosave via
 `saveRule` in `src/server/actions/rules.ts`, stored in the `Rule` model keyed on
-`(userId, feature)`) → a **prompt** textarea → **Generate** button → a preview dialog showing the
-assembled system prompt + rules + (optional channel context) + user prompt, with copy-to-clipboard.
-No AI model is wired up yet and **generations are not persisted** — `src/lib/prompt.ts`
-`assembleFinalPrompt()` only builds the preview text. When a model is added, extend
-`config/models.json` and call the provider from a new server action; don't change the assembly
-logic's shape unless the input parameters genuinely change.
+`(userId, feature)`) → a **prompt** textarea → **Generate** button. Pressing Generate calls that
+tab's `generate<Entity>` Server Action (`src/server/actions/{scripts,thumbnails,ideas}.ts`), which
+re-derives the system prompt (`getSystemPrompt`) and, for Ideas, channel context server-side (never
+trusts these from the client), assembles them with `src/lib/prompt.ts`'s `assembleFinalPrompt` +
+`toChatMessages`, and calls OpenRouter via `src/lib/openrouter.ts`'s `generateJsonCompletion` using
+the model from `getModelConfig()`. The model is forced into `{ title, <body field> }` JSON via
+`response_format: json_schema`, then re-validated through that entity's existing Zod input schema
+before being persisted — never trust AI output any more than client input. The button shows a
+loading state (`useTransition`) while waiting; there's no separate preview step anymore. Don't
+change `assembleFinalPrompt`'s shape unless the input parameters genuinely change.
 
-The Ideas tab additionally injects a "channel context" block (`src/lib/channel-context.ts`,
-compiled from the user's own published `Video` rows) and has a disabled "Get Ideas" button as the
-placeholder for the future automatic-idea-generation call.
+Scripts and Thumbnails no longer have a manual "New" button — generation is the only way to create
+an entry, though existing entries can still be edited (`ScriptFormDialog`/`ThumbnailFormDialog` are
+edit-only). Ideas keeps a manual "New Idea" button alongside generation. The Ideas tab additionally
+injects a "channel context" block (`src/lib/channel-context.ts`, compiled from the user's own
+published `Video` rows) and has a disabled "Get Ideas" button as the placeholder for the future
+automatic-idea-generation call (distinct from the per-prompt Generate button).
 
 ## Commands
 

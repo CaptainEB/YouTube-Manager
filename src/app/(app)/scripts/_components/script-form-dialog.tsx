@@ -22,8 +22,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { GenerationDetails } from "@/components/workspace/generation-details";
 import { scriptStatusValues, type ScriptStatus } from "@/schemas/script";
-import { createScript, updateScript } from "@/server/actions/scripts";
+import { updateScript } from "@/server/actions/scripts";
 
 type ScriptRecord = {
   id: string;
@@ -31,6 +32,8 @@ type ScriptRecord = {
   content: string;
   status: string;
   notes: string | null;
+  generationRules: string | null;
+  generationPrompt: string | null;
 };
 
 const STATUS_LABELS: Record<ScriptStatus, string> = {
@@ -46,13 +49,12 @@ export function ScriptFormDialog({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  script?: ScriptRecord;
+  script: ScriptRecord;
 }) {
-  const isEditing = Boolean(script);
-  const [title, setTitle] = useState(script?.title ?? "");
-  const [status, setStatus] = useState<ScriptStatus>((script?.status as ScriptStatus) ?? "draft");
-  const [content, setContent] = useState(script?.content ?? "");
-  const [notes, setNotes] = useState(script?.notes ?? "");
+  const [title, setTitle] = useState(script.title);
+  const [status, setStatus] = useState<ScriptStatus>(script.status as ScriptStatus);
+  const [content, setContent] = useState(script.content);
+  const [notes, setNotes] = useState(script.notes ?? "");
   const [isPending, startTransition] = useTransition();
 
   function resetAndClose() {
@@ -62,35 +64,27 @@ export function ScriptFormDialog({
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     startTransition(async () => {
-      const input = { title, status, content, notes };
-      const result = isEditing
-        ? await updateScript({ id: script!.id, ...input })
-        : await createScript(input);
+      const result = await updateScript({ id: script.id, title, status, content, notes });
 
       if (!result.ok) {
         toast.error(result.error);
         return;
       }
 
-      toast.success(isEditing ? "Script updated" : "Script created");
-      if (!isEditing) {
-        setTitle("");
-        setContent("");
-        setNotes("");
-        setStatus("draft");
-      }
+      toast.success("Script updated");
       resetAndClose();
     });
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[85vh] max-w-xl overflow-y-auto">
+      <DialogContent className="max-h-[85vh] max-w-4xl overflow-y-auto sm:max-w-4xl">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>{isEditing ? "Edit Script" : "New Script"}</DialogTitle>
+            <DialogTitle>Edit Script</DialogTitle>
             <DialogDescription>Track a video script from draft to completed.</DialogDescription>
           </DialogHeader>
+          <GenerationDetails prompt={script.generationPrompt} rules={script.generationRules} />
           <FieldGroup className="py-4">
             <Field>
               <FieldLabel htmlFor="script-title">Title</FieldLabel>
@@ -123,7 +117,7 @@ export function ScriptFormDialog({
                 id="script-content"
                 value={content}
                 onChange={(event) => setContent(event.target.value)}
-                rows={8}
+                rows={14}
               />
             </Field>
             <Field>
@@ -144,7 +138,7 @@ export function ScriptFormDialog({
               Cancel
             </Button>
             <Button type="submit" disabled={isPending || !title.trim()}>
-              {isEditing ? "Save" : "Create"}
+              Save
             </Button>
           </DialogFooter>
         </form>

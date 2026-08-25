@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { GenerationWorkspace } from "@/components/workspace/generation-workspace";
 import { getGenerationFeature } from "@/config/features";
-import { deleteIdea } from "@/server/actions/ideas";
+import { deleteIdea, generateIdea } from "@/server/actions/ideas";
 
 type IdeaRecord = {
   id: string;
@@ -20,6 +20,8 @@ type IdeaRecord = {
   description: string | null;
   status: string;
   notes: string | null;
+  generationRules: string | null;
+  generationPrompt: string | null;
   updatedAt: Date;
 };
 
@@ -27,14 +29,10 @@ const feature = getGenerationFeature("ideas");
 
 export function IdeasClient({
   ideas,
-  systemPrompt,
   initialRules,
-  channelContext,
 }: {
   ideas: IdeaRecord[];
-  systemPrompt: string;
   initialRules: string;
-  channelContext: string;
 }) {
   const [createOpen, setCreateOpen] = useState(false);
   const [editing, setEditing] = useState<IdeaRecord | null>(null);
@@ -61,16 +59,15 @@ export function IdeasClient({
                 Coming soon — will use your channel history and current trends.
               </TooltipContent>
             </Tooltip>
-            <Button onClick={() => setCreateOpen(true)}>{feature.createLabel}</Button>
+            <Button onClick={() => setCreateOpen(true)}>New Idea</Button>
           </div>
         }
       />
 
       <GenerationWorkspace
         feature={feature.key}
-        systemPrompt={systemPrompt}
         initialRules={initialRules}
-        channelContext={channelContext}
+        onGenerate={generateIdea}
       />
 
       <ItemList

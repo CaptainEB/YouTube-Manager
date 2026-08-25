@@ -7,10 +7,9 @@ import { DeleteConfirmDialog } from "@/components/items/delete-confirm-dialog";
 import { ItemList } from "@/components/items/item-list";
 import { ItemRow } from "@/components/items/item-row";
 import { PageHeader } from "@/components/layout/page-header";
-import { Button } from "@/components/ui/button";
 import { GenerationWorkspace } from "@/components/workspace/generation-workspace";
 import { getGenerationFeature } from "@/config/features";
-import { deleteThumbnail } from "@/server/actions/thumbnails";
+import { deleteThumbnail, generateThumbnail } from "@/server/actions/thumbnails";
 
 type ThumbnailRecord = {
   id: string;
@@ -19,6 +18,8 @@ type ThumbnailRecord = {
   imageUrl: string | null;
   status: string;
   notes: string | null;
+  generationRules: string | null;
+  generationPrompt: string | null;
   updatedAt: Date;
 };
 
@@ -26,36 +27,29 @@ const feature = getGenerationFeature("thumbnails");
 
 export function ThumbnailsClient({
   thumbnails,
-  systemPrompt,
   initialRules,
 }: {
   thumbnails: ThumbnailRecord[];
-  systemPrompt: string;
   initialRules: string;
 }) {
-  const [createOpen, setCreateOpen] = useState(false);
   const [editing, setEditing] = useState<ThumbnailRecord | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   return (
     <div className="flex flex-col gap-8">
-      <PageHeader
-        title={feature.label}
-        description={feature.description}
-        action={<Button onClick={() => setCreateOpen(true)}>{feature.createLabel}</Button>}
-      />
+      <PageHeader title={feature.label} description={feature.description} />
 
       <GenerationWorkspace
         feature={feature.key}
-        systemPrompt={systemPrompt}
         initialRules={initialRules}
         rulesGuidance="Put in your subjective preferences like thumbnail visual style, text vs. no-text preference, or any other rule that should stay consistent across every thumbnail."
+        onGenerate={generateThumbnail}
       />
 
       <ItemList
         empty={{
           title: "No thumbnails yet",
-          description: "Create your first thumbnail concept to get started.",
+          description: "Generate your first thumbnail concept above to get started.",
         }}
       >
         {thumbnails.map((thumbnail) => (
@@ -80,7 +74,6 @@ export function ThumbnailsClient({
         ))}
       </ItemList>
 
-      <ThumbnailFormDialog open={createOpen} onOpenChange={setCreateOpen} />
       {editing && (
         <ThumbnailFormDialog
           open={Boolean(editing)}
