@@ -49,6 +49,7 @@ export function ThumbnailsClient({
         feature={feature.key}
         systemPrompt={systemPrompt}
         initialRules={initialRules}
+        rulesGuidance="Put in your subjective preferences like thumbnail visual style, text vs. no-text preference, or any other rule that should stay consistent across every thumbnail."
       />
 
       <ItemList

@@ -10,7 +10,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
       <TopNav />
-      <div className="mx-auto flex w-full max-w-360 flex-1">
+      <div className="mx-auto flex w-full max-w-450 flex-1">
         <AppSidebar />
         <main className="flex-1 px-4 py-8 md:px-8">{children}</main>
       </div>

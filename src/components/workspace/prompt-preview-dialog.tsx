@@ -13,7 +13,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import type { PromptSection } from "@/lib/prompt";
 
@@ -39,14 +38,14 @@ export function PromptPreviewDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[85vh] max-w-2xl flex-col overflow-hidden">
+      <DialogContent className="flex max-h-[85vh] max-w-2xl flex-col overflow-hidden sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Final Prompt Preview</DialogTitle>
           <DialogDescription>
             This is the exact text that would be sent to the model.
           </DialogDescription>
         </DialogHeader>
-        <ScrollArea className="-mx-6 flex-1 px-6">
+        <div className="-mx-6 min-h-0 flex-1 overflow-y-auto px-6">
           <div className="flex flex-col gap-4 pb-2">
             {sections.map((section, index) => (
               <div key={section.label}>
@@ -58,7 +57,7 @@ export function PromptPreviewDialog({
               </div>
             ))}
           </div>
-        </ScrollArea>
+        </div>
         <DialogFooter>
           <Button onClick={handleCopy} variant="outline">
             {copied ? <Check className="size-4" /> : <Copy className="size-4" />}

@@ -48,6 +48,7 @@ export function ScriptsClient({
         feature={feature.key}
         systemPrompt={systemPrompt}
         initialRules={initialRules}
+        rulesGuidance="Put in your video style, writing style, channel name, username, or any other context that should stay consistent across every script."
       />
 
       <ItemList

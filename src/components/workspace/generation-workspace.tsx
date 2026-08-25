@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, NotebookText } from "lucide-react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
@@ -10,6 +10,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { PromptPreviewDialog } from "@/components/workspace/prompt-preview-dialog";
+import { RulesDialog } from "@/components/workspace/rules-dialog";
 import type { GenerationFeatureKey } from "@/config/features";
 import { assembleFinalPrompt } from "@/lib/prompt";
 import { cn } from "@/lib/utils";
@@ -20,17 +21,24 @@ export function GenerationWorkspace({
   systemPrompt,
   initialRules,
   channelContext,
+  rulesGuidance,
 }: {
   feature: GenerationFeatureKey;
   systemPrompt: string;
   initialRules: string;
   channelContext?: string;
+  // When provided, Rules move to a button + modal with a "?" guidance tooltip and an explicit
+  // Save button (Scripts/Thumbnails). When omitted, Rules stay inline with autosave (Ideas).
+  rulesGuidance?: string;
 }) {
   const [rules, setRules] = useState(initialRules);
   const [userPrompt, setUserPrompt] = useState("");
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [rulesModalOpen, setRulesModalOpen] = useState(false);
+
+  // Only used by the inline autosave variant (Ideas).
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const [rulesOpen, setRulesOpen] = useState(initialRules.trim().length === 0);
-  const [previewOpen, setPreviewOpen] = useState(false);
   const [, startTransition] = useTransition();
 
   const debouncedSave = useDebouncedCallback((value: string) => {
@@ -44,7 +52,7 @@ export function GenerationWorkspace({
     });
   }, 800);
 
-  function handleRulesChange(value: string) {
+  function handleInlineRulesChange(value: string) {
     setRules(value);
     setSaveState("idle");
     debouncedSave(value);
@@ -58,50 +66,74 @@ export function GenerationWorkspace({
   });
 
   return (
-    <div className="border-border bg-card flex flex-col gap-5 rounded-xl border p-6">
-      <Collapsible open={rulesOpen} onOpenChange={setRulesOpen}>
-        <div className="flex items-center justify-between">
-          <CollapsibleTrigger asChild>
-            <button
-              type="button"
-              className="text-foreground flex items-center gap-2 text-sm font-semibold"
-            >
-              <ChevronDown
-                className={cn("size-4 transition-transform", !rulesOpen && "-rotate-90")}
-              />
-              Rules
-            </button>
-          </CollapsibleTrigger>
-          <span className="text-muted-foreground text-xs">
-            {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved" : ""}
-          </span>
+    <div className="flex flex-col gap-4">
+      {rulesGuidance && (
+        <div>
+          <Button type="button" variant="outline" onClick={() => setRulesModalOpen(true)}>
+            <NotebookText className="size-4" />
+            Rules
+          </Button>
         </div>
-        <CollapsibleContent className="mt-3">
+      )}
+
+      <div className="border-border bg-card flex flex-col gap-5 rounded-xl border p-6">
+        {!rulesGuidance && (
+          <Collapsible open={rulesOpen} onOpenChange={setRulesOpen}>
+            <div className="flex items-center justify-between">
+              <CollapsibleTrigger asChild>
+                <button
+                  type="button"
+                  className="text-foreground flex items-center gap-2 text-sm font-semibold"
+                >
+                  <ChevronDown
+                    className={cn("size-4 transition-transform", !rulesOpen && "-rotate-90")}
+                  />
+                  Rules
+                </button>
+              </CollapsibleTrigger>
+              <span className="text-muted-foreground text-xs">
+                {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved" : ""}
+              </span>
+            </div>
+            <CollapsibleContent className="mt-3">
+              <Textarea
+                value={rules}
+                onChange={(event) => handleInlineRulesChange(event.target.value)}
+                placeholder="Rules applied to every prompt in this tab (tone, formatting, things to avoid, etc.)"
+                rows={5}
+              />
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="user-prompt">Prompt</Label>
           <Textarea
-            value={rules}
-            onChange={(event) => handleRulesChange(event.target.value)}
-            placeholder="Rules applied to every prompt in this tab (tone, formatting, things to avoid, etc.)"
-            rows={5}
+            id="user-prompt"
+            value={userPrompt}
+            onChange={(event) => setUserPrompt(event.target.value)}
+            placeholder="Describe the video you're working on…"
+            rows={4}
           />
-        </CollapsibleContent>
-      </Collapsible>
+        </div>
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="user-prompt">Prompt</Label>
-        <Textarea
-          id="user-prompt"
-          value={userPrompt}
-          onChange={(event) => setUserPrompt(event.target.value)}
-          placeholder="Describe the video you're working on…"
-          rows={4}
+        <div className="flex justify-end">
+          <Button onClick={() => setPreviewOpen(true)} disabled={!userPrompt.trim()}>
+            Generate
+          </Button>
+        </div>
+      </div>
+
+      {rulesGuidance && (
+        <RulesDialog
+          open={rulesModalOpen}
+          onOpenChange={setRulesModalOpen}
+          feature={feature}
+          guidance={rulesGuidance}
+          content={rules}
+          onSaved={setRules}
         />
-      </div>
-
-      <div className="flex justify-end">
-        <Button onClick={() => setPreviewOpen(true)} disabled={!userPrompt.trim()}>
-          Generate
-        </Button>
-      </div>
+      )}
 
       <PromptPreviewDialog
         open={previewOpen}
