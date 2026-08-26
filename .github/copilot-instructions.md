@@ -56,8 +56,10 @@ Four layers, all required — do not treat any single one as sufficient on its o
    the user's own options (see `assertLinksBelongToUser` in `src/server/actions/videos.ts` for the
    pattern).
 
-There is intentionally no `/sign-up` route. `/` redirects signed-in users to `/dashboard` and
-signed-out users to `/sign-in`. Do not add a sign-up page or a `signUpUrl` prop.
+`/sign-up` (`src/app/sign-up/[[...sign-up]]/page.tsx`) exists purely for the owner's convenience
+(no self-serve signup is intended) — it's meant to be locked down via Clerk Dashboard → Configure →
+Restrictions (per environment) rather than by removing the route. `/` redirects signed-in users to
+`/dashboard` and signed-out users to `/sign-in`.
 
 All server action inputs are parsed with `.safeParse()` against a Zod schema in `src/schemas/`
 before touching the database; return `{ ok: false, error }` (see `src/lib/action-result.ts`) rather

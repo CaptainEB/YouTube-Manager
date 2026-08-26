@@ -19,12 +19,13 @@ Two files hold env vars:
 | `OPENROUTER_API_KEY`                                                                                | Secret — goes in `.env.local`, not `.env`. Sign up at [openrouter.ai](https://openrouter.ai/), then create a key at **Settings → Keys**. Used to generate scripts/thumbnails/ideas; the model itself is configured in `config/models.json`, not here.                                                                                                                                                                                                                                                                                                                                                                                                                   | Pressing "Generate" on any tab               |
 | `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_BASE_URL` | Secrets — go in `.env.local`. In the Cloudflare dashboard: create an R2 bucket (**R2 Object Storage → Create bucket**) for `R2_BUCKET_NAME`; your `R2_ACCOUNT_ID` is shown on that same R2 overview page; create an API token under **Manage API Tokens → Create API Token** (permission: Object Read & Write, scoped to the bucket) for `R2_ACCESS_KEY_ID`/`R2_SECRET_ACCESS_KEY`. For `R2_PUBLIC_BASE_URL`, enable the bucket's public access under **Settings → Public Access** — either turn on the `r2.dev` dev URL (fine for testing, e.g. `https://pub-xxxx.r2.dev`) or connect a custom domain (recommended before real traffic, since r2.dev is rate-limited). | Pressing "Generate" on the Thumbnails tab    |
 
-## 2. Clerk Dashboard: disable sign-up
+## 2. Clerk Dashboard: restrict sign-up
 
-This app has no `/sign-up` route, but also lock it down at the source: in the Clerk Dashboard →
-your app → **Configure** → **Restrictions**, set sign-up to restricted/invitation-only (or disable
-it) so no one can create a Clerk account for this application at all. Do this for both the
-development and production instances.
+`/sign-up` exists so you (the owner) can create your account easily, but it should be locked down
+at the source once you're done using it: in the Clerk Dashboard → your app → **Configure** →
+**Restrictions**, set sign-up to restricted/invitation-only (or disable it) so no one else can
+create a Clerk account for this application. Do this for both the development and production
+instances.
 
 ## 3. Railway MySQL
 
@@ -41,14 +42,27 @@ development and production instances.
    preview deployments to work): `DATABASE_URL`, `ALLOWED_USER_IDS`,
    `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY` (production Clerk instance keys — see
    table above), `NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in`,
-   `NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/dashboard`.
+   `NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/dashboard`,
+   `NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up`,
+   `NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/dashboard`.
 3. Vercel will run `bun run build`, which runs `prisma generate` before `next build` — no extra
    build configuration needed.
 4. Before the first production deploy with real users, run migrations against the production
    database: `bunx prisma migrate deploy` (from your machine, pointed at the production
    `DATABASE_URL`, or wire it into a deploy step).
-5. In the Clerk Dashboard, add your Vercel production domain under **Domains** for the production
-   instance.
+5. **Custom domain (e.g. `www.socialmanager.live`)**: add it under the Vercel project's **Domains**
+   tab first (Vercel gives you the DNS records to add at your registrar). Sign-in rendering blank
+   on a real domain almost always means Clerk is still running on **development** keys
+   (`pk_test_...`) — dev instances are only meant for `localhost`/preview URLs. Fix:
+   1. Clerk Dashboard → top-left instance switcher → **Create production instance**.
+   2. Clerk Dashboard → **Domains** → add `www.socialmanager.live`, then add the CNAME records it
+      gives you at your DNS registrar (can take up to ~48h to propagate; the dashboard shows live
+      verification status).
+   3. Clerk Dashboard → **API keys** (with the **Production** instance selected) → copy the
+      `pk_live_`/`sk_live_` pair into your Vercel project's env vars (Production scope) — never into
+      this repo's `.env`/`.env.local`.
+   4. Redeploy. Until DNS + the production instance are fully verified, keep using the dev keys on
+      a Vercel-provided `*.vercel.app` URL rather than the custom domain.
 
 ## Next steps / what's intentionally not done yet
 

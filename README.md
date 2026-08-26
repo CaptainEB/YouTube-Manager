@@ -65,8 +65,9 @@ id), plus Vercel deployment steps.
 Four layers, all required — see the "Security model" section in
 [.github/copilot-instructions.md](./.github/copilot-instructions.md) for the full write-up:
 Clerk authentication → an owner allowlist (`ALLOWED_USER_IDS`) → a `requireOwner()` check in every
-page and Server Action → every database query scoped to the caller's own rows. There is no sign-up
-page; this app is for the owner only.
+page and Server Action → every database query scoped to the caller's own rows. This app is for the
+owner only — `/sign-up` exists for the owner's convenience and should be locked down via the Clerk
+Dashboard's sign-up restrictions once you no longer need it.
 
 ## Design
 
